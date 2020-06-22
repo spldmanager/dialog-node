@@ -144,6 +144,17 @@ Returns the path of a selected file as a string handed into the callback functio
 * Path of file that user selected in the file picker before pressing the 'OK' button. Currently the path format is different for different OSes. This will be harmonized across all OSes at a later time.
 * Empty string when user did not select a date or the system closed the dialog through other actions
 
+
+### text-info
+
+Prompts user to see text
+```
+#sylarhuang added
+dialog-node.textinfo(msg, title, timeout, callback);
+```
+
+与QUESTION弹窗类似，只是在文本框中显示文字。仅适用于Linux的zenity界面，具体效果请查阅zenity手册
+
 ## Callback mechanism
 
 dialog-nodes are non-blocking and call a callback function after the user action happened (i.e. clicking 'OK' button). For dialogs that return some information (i.e. the entry text that the user typed), callback hands in retVal which contains the user's response as a string.
@@ -156,6 +167,7 @@ code = return code from dialog
 retVal = user's response as a string
 stderr = any error information that the dialog created
 ```
+
 
 ## Comments
 
