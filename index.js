@@ -4,7 +4,7 @@ var join = require('path').join,
 
 var OS = os.platform();
 var retVal = "";
-
+var fs = require('fs')
 var cmd = [];
 
 var OK = 1;
@@ -248,7 +248,67 @@ var dialogNode = module.exports = {
 
     this.run(cmd, cb, callback);
   },
+    textinfo: function( str, title,timeout, callback){
+        this.init();
+        if( OS === "linux")
+        {
+            str = str.replace(/[<>]/g, '');
+            if(fs.existsSync('/run/test_result.txt')) fs.unlinkSync('/run/test_result.txt')
+            fs.writeFileSync('/run/test_result.txt',str)
+            cmd.push('zenity');
+            cmd.push('--text-info');
+            cmd.push('--filename') && cmd.push('/run/test_result.txt');
+            cmd.push('--title') && cmd.push(title);
+            cmd.push('--timeout') && cmd.push(timeout);
+            cmd.push('--width') && cmd.push('320');
+            cmd.push('--height') && cmd.push('480');
+            cb = function(code, stdout, stderr){
+                if(code)
+                    retVal = CANCEL_STR;
+                else
+                    retVal = OK_STR;
+                if(callback)
+                    callback(code, retVal, stderr);
+            }
+        }
+        else if( OS === "darwin")
+        {
+            str = str.replace(/"/g, "'"); // double quotes to single quotes
+            cmd.push('osascript') && cmd.push('-e');
+            var script = 'tell app \"System Events\" to display dialog ';
+            script += '\"' + str + '\" with title \"' + title + '\" buttons {\"Cancel\", \"OK\"}';
+            script += ' giving up after ' + timeout;
+            cmd.push(script);
+            cb = function(code, stdout, stderr){
+                if(code)
+                    retVal = CANCEL_STR;
+                else
+                    retVal = OK_STR;
+                if(callback)
+                    callback(code, retVal, stderr);
+            }
+        }
+        else if (OS === "win32")
+        {
+            cmd.push('cscript');
+            cmd.push('//Nologo');
+            cmd.push('msgbox.vbs')
+            cmd.push('question');
+            cmd.push(title);
+            cmd.push(str);
 
+            cb = function(code, stdout, stderr){
+                if(stdout === "1")
+                    retVal = OK_STR;
+                else
+                    retVal = CANCEL_STR;
+                if(callback)
+                    callback(code, retVal, stderr);
+            }
+        }
+
+        this.run(cmd, cb, callback);
+    },
   entry: function( str, title, timeout, callback){
     this.init();
     if( OS === "linux")
